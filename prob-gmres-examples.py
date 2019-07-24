@@ -66,6 +66,7 @@ def calc_prob(R,eps,C,k,N,sigma):
 
             if G_single(0.0) < R:
                 lower_point = bisect(G_single_R,0.0,gradpoint)
+                lower_point = inch_forward(G_single_R,lower_point)
                 # integrate [0,lower_point]
                 total_prob += lognorm.cdf(lower_point,sigma)
 
@@ -73,10 +74,27 @@ def calc_prob(R,eps,C,k,N,sigma):
 
             if G_single(nearly_end) < R:
                 higher_point = bisect(G_single_R,gradpoint,nearly_end)
+                higher_point = inch_backward(G_single_R,higher_point)
                 # integrate [higher_point,end]
                 total_prob += (lognorm.cdf(endpoint,sigma)-lognorm.cdf(higher_point,sigma))
 
-    return total_prob        
+    return total_prob
+
+def inch_forward(fn,x):
+
+    shift = 0.001
+    
+    while fn(x) == 0:
+        x += shift
+    return x-shift
+
+def inch_backward(fn,x):
+
+    shift = 0.001
+    
+    while fn(x) == 0:
+        x -= shift
+    return x+shift
 
 if __name__ == "__main__":
     # This was a test. It worked
@@ -93,7 +111,7 @@ if __name__ == "__main__":
     
     N = np.ceil(k**(d*1.5))
 
-    C = 1.0
+    C = 0.1
 
     x = np.linspace(0.01,0.99,10000)
     
@@ -113,7 +131,7 @@ if __name__ == "__main__":
 
     #plt.show()
 
-    R = np.arange(1,N+1)
+    R = np.arange(10,np.floor(N/3))
 
     R_prob = np.array([calc_prob(float(Ri),eps,C,k,N,sigma) for Ri in R])
 
