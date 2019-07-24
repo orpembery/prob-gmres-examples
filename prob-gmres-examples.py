@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     #plt.show()
 
-    R = np.arange(10,np.floor(N/3))
+    R = np.arange(10,N+1)
 
     R_prob = np.array([calc_prob(float(Ri),eps,C,k,N,sigma) for Ri in R])
 
