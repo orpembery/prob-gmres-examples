@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import bisect
 from matplotlib import pyplot as plt
-from scipy.stats import lognorm
+from scipy.stats import expon
 
 def G(diff,eps,C,k,N):
     """Defines the probabalistic GMRES bound function.
@@ -24,6 +24,9 @@ def G(diff,eps,C,k,N):
     if alpha >= 1.0:
         val = N
 
+    if alpha == 0.0:
+        val = 1
+
     else:
     
         complicated = np.log(eps) / np.log( (2.0*alpha**0.5) / ((1.0+alpha)**2.0) )
@@ -32,12 +35,10 @@ def G(diff,eps,C,k,N):
 
     return val
 
-def calc_prob(R,eps,C,k,N,sigma):
+def calc_prob(R,eps,C,k,N,scale):
     """Calculates the probability that GMRES converges in fewer than R
     iterations when the L^\infty norm of the difference is
-    logrnormal(0,sigma)"""
-
-    #import pdb; pdb.set_trace()
+    exp(scale)"""
     
     if R >= N:
         total_prob = 1.0
@@ -60,7 +61,10 @@ def calc_prob(R,eps,C,k,N,sigma):
         
         if G_single(gradpoint) < R:
             # integrate [0,end]
-            total_prob += lognorm.cdf(endpoint,sigma)
+            total_prob += expon.cdf(endpoint,scale=scale)
+
+        elif int(G_single(gradpoint)) == int(R):
+            total_prob = 1.0
 
         else:
 
@@ -68,7 +72,7 @@ def calc_prob(R,eps,C,k,N,sigma):
                 lower_point = bisect(G_single_R,0.0,gradpoint)
                 lower_point = inch_forward(G_single_R,lower_point)
                 # integrate [0,lower_point]
-                total_prob += lognorm.cdf(lower_point,sigma)
+                total_prob += expon.cdf(lower_point,scale=scale)
 
             nearly_end = endpoint - 10.0**-10.0
 
@@ -76,7 +80,7 @@ def calc_prob(R,eps,C,k,N,sigma):
                 higher_point = bisect(G_single_R,gradpoint,nearly_end)
                 higher_point = inch_backward(G_single_R,higher_point)
                 # integrate [higher_point,end]
-                total_prob += (lognorm.cdf(endpoint,sigma)-lognorm.cdf(higher_point,sigma))
+                total_prob += (expon.cdf(endpoint,scale=scale)-expon.cdf(higher_point,scale=scale))
 
     return total_prob
 
@@ -105,41 +109,44 @@ if __name__ == "__main__":
 
     eps = 10.0**-6.0
 
-    k = 10.0
+    #    k = 10.0
 
-    d = 2.0
+    probs = []
+
+    k_range = [50.0]#np.linspace(10.0,200.0,10)
+
+    for k in k_range:
     
-    N = np.ceil(k**(d*1.5))
+        d = 2.0
 
-    C = 0.1
+        N = np.ceil(k**(d*1.5))
 
-    x = np.linspace(0.01,0.99,10000)
-    
-    y = np.array([G(xi,eps,C,k,N) for xi in x])
+        C = 0.1
 
-    plt.step(x,y,where="mid")
+        x = np.linspace(0.01,0.99,10000)
 
-    #plt.show()
+        y = np.array([G(xi,eps,C,k,N) for xi in x])
 
-    sigma = 1.0
+        plt.step(x,y,where="mid")
 
-    x2 = np.linspace(0.0,10.0,10000)
-    
-    z = lognorm.cdf(x2,sigma)
+        scale = 1.0/k
 
-    #plt.plot(x2,z)
+        R = np.arange(1,N+1)
 
-    #plt.show()
+        R_prob = np.array([calc_prob(float(Ri),eps,C,k,N,scale) for Ri in R])
 
-    R = np.arange(10,N+1)
+        #print(R_prob)
 
-    R_prob = np.array([calc_prob(float(Ri),eps,C,k,N,sigma) for Ri in R])
+        plt.figure()
 
-    print(R_prob)
-    
-    plt.figure()
-    
-    plt.semilogy(R,R_prob,'.')
+        plt.semilogy(R,R_prob,'.')
+
+        #plt.show()
+
+        probs.append(calc_prob(float(20),eps,C,k,N,scale))
+
+        print(probs)
+
+    plt.plot(k_range,probs)
 
     plt.show()
-    
