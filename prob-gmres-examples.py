@@ -1,4 +1,7 @@
 import numpy as np
+from scipy.optimize import bisect
+from matplotlib import pyplot as plt
+from scipy.stats import lognorm
 
 def G(diff,eps,C,k,N):
     """Defines the probabalistic GMRES bound function.
@@ -15,7 +18,7 @@ def G(diff,eps,C,k,N):
 
     Returns the bound. Uses natural logs
     """
-
+    
     alpha = C * k * diff
 
     if alpha >= 1.0:
@@ -23,11 +26,57 @@ def G(diff,eps,C,k,N):
 
     else:
     
-        complicated = np.log(eps) / np.log(2.0*alpha**0.5 / (1.0+alpha)**2.0 )
+        complicated = np.log(eps) / np.log( (2.0*alpha**0.5) / ((1.0+alpha)**2.0) )
 
-        val = min([N,complicated+1.0])
+        val = min([N,np.ceil(complicated)])
 
     return val
+
+def calc_prob(R,eps,C,k,N,sigma):
+    """Calculates the probability that GMRES converges in fewer than R
+    iterations when the L^\infty norm of the difference is
+    logrnormal(0,sigma)"""
+
+    #import pdb; pdb.set_trace()
+    
+    if R >= N:
+        total_prob = 1.0
+    else:
+
+        def G_single(x):
+            return G(x,eps,C,k,N)
+
+        def G_single_R(y):
+            return G_single(y) - R
+
+        # Find the point at which we revert to the worst-case GMRES estimate
+        endpoint = 1.0/(C*k)
+
+        # Find the point at which the gradient is zero
+        # One can calculate this by hand
+        gradpoint = 1.0/(3.0*C*k)
+
+        total_prob = 0.0
+        
+        if G_single(gradpoint) < R:
+            # integrate [0,end]
+            total_prob += lognorm.cdf(endpoint,sigma)
+
+        else:
+
+            if G_single(0.0) < R:
+                lower_point = bisect(G_single_R,0.0,gradpoint)
+                # integrate [0,lower_point]
+                total_prob += lognorm.cdf(lower_point,sigma)
+
+            nearly_end = endpoint - 10.0**-10.0
+
+            if G_single(nearly_end) < R:
+                higher_point = bisect(G_single_R,gradpoint,nearly_end)
+                # integrate [higher_point,end]
+                total_prob += (lognorm.cdf(endpoint,sigma)-lognorm.cdf(higher_point,sigma))
+
+    return total_prob        
 
 if __name__ == "__main__":
     # This was a test. It worked
@@ -36,4 +85,43 @@ if __name__ == "__main__":
     # This was also a test. It also worked
     #print(G(10.0,1.0,1.0,1.0,1000.0))
 
+    eps = 10.0**-6.0
+
+    k = 10.0
+
+    d = 2.0
+    
+    N = np.ceil(k**(d*1.5))
+
+    C = 1.0
+
+    x = np.linspace(0.01,0.99,10000)
+    
+    y = np.array([G(xi,eps,C,k,N) for xi in x])
+
+    plt.step(x,y,where="mid")
+
+    #plt.show()
+
+    sigma = 1.0
+
+    x2 = np.linspace(0.0,10.0,10000)
+    
+    z = lognorm.cdf(x2,sigma)
+
+    #plt.plot(x2,z)
+
+    #plt.show()
+
+    R = np.arange(1,N+1)
+
+    R_prob = np.array([calc_prob(float(Ri),eps,C,k,N,sigma) for Ri in R])
+
+    print(R_prob)
+    
+    plt.figure()
+    
+    plt.semilogy(R,R_prob,'.')
+
+    plt.show()
     
