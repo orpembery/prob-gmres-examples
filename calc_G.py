@@ -17,14 +17,13 @@ def G(diff,eps,C,k,N):
     N - the number of dofs
 
     Returns the bound. Uses natural logs
-    """
-    
+    """    
     alpha = C * k * diff
 
     if alpha >= 1.0:
         val = N
 
-    if alpha == 0.0:
+    elif alpha == 0.0:
         val = 1
 
     else:
@@ -54,6 +53,7 @@ def calc_prob(R,eps,C,k,N,scale):
         endpoint = 1.0/(C*k)
 
         # Find the point at which the gradient is zero
+        # And therefore the maximum on the part alpha < 1
         # One can calculate this by hand
         gradpoint = 1.0/(3.0*C*k)
 
@@ -62,9 +62,6 @@ def calc_prob(R,eps,C,k,N,scale):
         if G_single(gradpoint) < R:
             # integrate [0,end]
             total_prob += expon.cdf(endpoint,scale=scale)
-
-        elif int(G_single(gradpoint)) == int(R):
-            total_prob = 1.0
 
         else:
 
@@ -84,73 +81,3 @@ def calc_prob(R,eps,C,k,N,scale):
 
     return total_prob
 
-if __name__ == "__main__":
-    # This was a test. It worked
-    #print(G(0.0,1.0,1.0,1.0,1000.0))
-
-    # This was also a test. It also worked
-    #print(G(10.0,1.0,1.0,1.0,1000.0))
-
-    eps = 10.0**-5.0
-
-    probs = []
-
-    k_range = np.linspace(10.0,200.0,1001)
-
-    to_use = []
-    
-    for k in k_range:
-
-        d = 2.0
-
-        N = np.ceil(k**(d*1.5))
-
-        C = 0.1 # Would need to estimate this?
-
-        scale = 1.0/k
-
-        probs.append(calc_prob(float(20),eps,C,k,N,scale))
-
-        print(k)
-
-
-    plt.plot(k_range,probs,'.')
-    
-    plt.show()
-
-# To keep
-
- #                x = np.linspace(0.01,0.99,10000)
-
-#             y = np.array([G(xi,eps,C,k,N) for xi in x])
-
-#             #plt.figure()
-
-#             #plt.step(x,y,where="mid")
-
-# for k
-
-        # def next(Ri):
-        #     return calc_prob(float(Ri),eps,C,k,N,scale)
-
-        # R_prob = [next(1.0)]
-
-        # Ri = 1.0
-
-        # while R_prob[-1] != 1.0:
-        #     Ri += 1.0
-        #     R_prob.append(next(Ri))
-
-        # R_prob = np.array(R_prob)
-
-        # to_use.append(R_prob)
-
-        # R = np.arange(1,len(R_prob)+1)
-
-        # print(R_prob)
-
-        # plt.figure()
-
-        # plt.semilogy(R,R_prob,'.')
-
-        # plt.show()
