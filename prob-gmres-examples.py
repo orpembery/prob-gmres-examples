@@ -35,7 +35,7 @@ def G(diff,eps,C,k,N):
 
     return val
 
-def calc_prob(R,eps,C,k,N,scale,use):
+def calc_prob(R,eps,C,k,N,scale):
     """Calculates the probability that GMRES converges in fewer than R
     iterations when the L^\infty norm of the difference is
     exp(scale)"""
@@ -95,58 +95,28 @@ if __name__ == "__main__":
 
     probs = []
 
-    k_range = [50.0]#np.linspace(10.0,200.0,1001)
+    k_range = np.linspace(10.0,200.0,1001)
 
     to_use = []
     
-    for use in [True,False]:
+    for k in k_range:
+
+        d = 2.0
+
+        N = np.ceil(k**(d*1.5))
+
+        C = 0.1 # Would need to estimate this?
+
+        scale = 1.0/k
+
+        probs.append(calc_prob(float(20),eps,C,k,N,scale))
+
+        print(k)
+
+
+    plt.plot(k_range,probs,'.')
     
-        for k in k_range:
-
-            d = 2.0
-
-            N = np.ceil(k**(d*1.5))
-
-            C = 0.1 # Would need to estimate this?
-
-            scale = 1.0#/k # !!!
-
-            def next(Ri):
-                return calc_prob(float(Ri),eps,C,k,N,scale)
-
-            R_prob = [next(1.0)]
-
-            Ri = 1.0
-
-            while R_prob[-1] != 1.0:
-                Ri += 1.0
-                R_prob.append(next(Ri))
-
-            R_prob = np.array(R_prob)
-
-            to_use.append(R_prob)
-
-            R = np.arange(1,len(R_prob)+1)
-
-            print(R_prob)
-
-            plt.figure()
-
-            plt.semilogy(R,R_prob,'.')
-
-            plt.show()
-
-            probs.append(calc_prob(float(20),eps,C,k,N,scale,use))
-
-            print(k)
-
-    plt.plot(R,to_use[0]-to_use[1],'.')
-
     plt.show()
-
-    #plt.plot(k_range,probs,'.')
-    
-    #plt.show()
 
 # To keep
 
@@ -158,3 +128,29 @@ if __name__ == "__main__":
 
 #             #plt.step(x,y,where="mid")
 
+# for k
+
+        # def next(Ri):
+        #     return calc_prob(float(Ri),eps,C,k,N,scale)
+
+        # R_prob = [next(1.0)]
+
+        # Ri = 1.0
+
+        # while R_prob[-1] != 1.0:
+        #     Ri += 1.0
+        #     R_prob.append(next(Ri))
+
+        # R_prob = np.array(R_prob)
+
+        # to_use.append(R_prob)
+
+        # R = np.arange(1,len(R_prob)+1)
+
+        # print(R_prob)
+
+        # plt.figure()
+
+        # plt.semilogy(R,R_prob,'.')
+
+        # plt.show()
