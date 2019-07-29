@@ -28,6 +28,30 @@ def test_upper_bound():
 
     assert np.isclose(max_val[0],np.array(max_val)).all()
 
+def test_lower_bound():
+    """Tests that when there's no noise we do 1 iteration.
+    """
+
+    eps = 10.0**-5.0
+
+    k_range = np.linspace(10.0,200.0,1001)
+
+    max_val = []
+    
+    for k in k_range:
+
+        d = 2.0
+
+        N = np.ceil(k**(d*1.5))
+
+        C = 0.1
+
+        scale = 1.0
+
+        zero = 0.0
+        
+        assert np.isclose(1,calc_G.G(zero,eps,C,k,N))
+
 def test_default_bound():
     """Tests that when the standard GMRES estimate should kick in, it does.
     """
