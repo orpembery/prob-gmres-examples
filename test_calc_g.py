@@ -75,9 +75,3 @@ def test_default_bound():
         endpoint = 1.0/(C*k) + 1.0
         
         assert np.isclose(N,calc_G.G(endpoint,eps,C,k,N))
-
-    
-"""the probability of convergence in under R iterations is 1
-(uniformly in $k$) if R is high enough."""
-
-#probs.append(calc_G.calc_prob(float(threshold),eps,C,k,N,scale))
