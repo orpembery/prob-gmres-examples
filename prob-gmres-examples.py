@@ -35,7 +35,7 @@ def G(diff,eps,C,k,N):
 
     return val
 
-def calc_prob(R,eps,C,k,N,scale):
+def calc_prob(R,eps,C,k,N,scale,use):
     """Calculates the probability that GMRES converges in fewer than R
     iterations when the L^\infty norm of the difference is
     exp(scale)"""
@@ -70,7 +70,7 @@ def calc_prob(R,eps,C,k,N,scale):
 
             if G_single(0.0) < R:
                 lower_point = bisect(G_single_R,0.0,gradpoint)
-                lower_point = inch_forward(G_single_R,lower_point)
+
                 # integrate [0,lower_point]
                 total_prob += expon.cdf(lower_point,scale=scale)
 
@@ -78,27 +78,11 @@ def calc_prob(R,eps,C,k,N,scale):
 
             if G_single(nearly_end) < R:
                 higher_point = bisect(G_single_R,gradpoint,nearly_end)
-                higher_point = inch_backward(G_single_R,higher_point)
+
                 # integrate [higher_point,end]
                 total_prob += (expon.cdf(endpoint,scale=scale)-expon.cdf(higher_point,scale=scale))
 
     return total_prob
-
-def inch_forward(fn,x):
-
-    shift = 0.001
-    
-    while fn(x) == 0:
-        x += shift
-    return x-shift
-
-def inch_backward(fn,x):
-
-    shift = 0.001
-    
-    while fn(x) == 0:
-        x -= shift
-    return x+shift
 
 if __name__ == "__main__":
     # This was a test. It worked
@@ -107,60 +91,70 @@ if __name__ == "__main__":
     # This was also a test. It also worked
     #print(G(10.0,1.0,1.0,1.0,1000.0))
 
-    eps = 10.0**-6.0
+    eps = 10.0**-5.0
 
     probs = []
 
-    k_range = np.linspace(10.0,200.0,1001)
+    k_range = [50.0]#np.linspace(10.0,200.0,1001)
 
-
-    for k in k_range:
+    to_use = []
     
-        d = 2.0
-
-        N = np.ceil(k**(d*1.5))
-
-        C = 0.1 # Would need to estimate this?
-
-        x = np.linspace(0.01,0.99,10000)
-
-        y = np.array([G(xi,eps,C,k,N) for xi in x])
-        
-        #plt.figure()
-        
-        #plt.step(x,y,where="mid")
-
-        scale = 1.0/k
-
-        def next(Ri):
-            return calc_prob(float(Ri),eps,C,k,N,scale)
-
-        R_prob = [next(1.0)]
-
-        Ri = 1.0
-
-        while R_prob[-1] != 1.0:
-            Ri += 1.0
-            R_prob.append(next(Ri))
-            
-        R_prob = np.array(R_prob[:-1])
-
-        R = np.arange(1,N+1)
-
-        R = R[:len(R_prob)]
-
-        #print(R_prob)
-
-        #plt.figure()
-
-        #plt.semilogy(R,R_prob,'.')
-
-        #plt.show()
-
-        probs.append(calc_prob(float(20),eps,C,k,N,scale))
-
-        print(k)
-
-    plt.plot(k_range,probs,'.')
+    for use in [True,False]:
     
+        for k in k_range:
+
+            d = 2.0
+
+            N = np.ceil(k**(d*1.5))
+
+            C = 0.1 # Would need to estimate this?
+
+            scale = 1.0#/k # !!!
+
+            def next(Ri):
+                return calc_prob(float(Ri),eps,C,k,N,scale)
+
+            R_prob = [next(1.0)]
+
+            Ri = 1.0
+
+            while R_prob[-1] != 1.0:
+                Ri += 1.0
+                R_prob.append(next(Ri))
+
+            R_prob = np.array(R_prob)
+
+            to_use.append(R_prob)
+
+            R = np.arange(1,len(R_prob)+1)
+
+            print(R_prob)
+
+            plt.figure()
+
+            plt.semilogy(R,R_prob,'.')
+
+            plt.show()
+
+            probs.append(calc_prob(float(20),eps,C,k,N,scale,use))
+
+            print(k)
+
+    plt.plot(R,to_use[0]-to_use[1],'.')
+
     plt.show()
+
+    #plt.plot(k_range,probs,'.')
+    
+    #plt.show()
+
+# To keep
+
+ #                x = np.linspace(0.01,0.99,10000)
+
+#             y = np.array([G(xi,eps,C,k,N) for xi in x])
+
+#             #plt.figure()
+
+#             #plt.step(x,y,where="mid")
+
