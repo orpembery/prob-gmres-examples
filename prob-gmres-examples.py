@@ -31,7 +31,7 @@ def G(diff,eps,C,k,N):
     
         complicated = np.log(eps) / np.log( (2.0*alpha**0.5) / ((1.0+alpha)**2.0) )
 
-        val = min([N,np.ceil(complicated)])
+        val = min([N,complicated+1.0])
 
     return val
 
@@ -109,11 +109,10 @@ if __name__ == "__main__":
 
     eps = 10.0**-6.0
 
-    #    k = 10.0
-
     probs = []
 
-    k_range = [50.0]#np.linspace(10.0,200.0,10)
+    k_range = np.linspace(10.0,200.0,1001)
+
 
     for k in k_range:
     
@@ -121,32 +120,47 @@ if __name__ == "__main__":
 
         N = np.ceil(k**(d*1.5))
 
-        C = 0.1
+        C = 0.1 # Would need to estimate this?
 
         x = np.linspace(0.01,0.99,10000)
 
         y = np.array([G(xi,eps,C,k,N) for xi in x])
-
-        plt.step(x,y,where="mid")
+        
+        #plt.figure()
+        
+        #plt.step(x,y,where="mid")
 
         scale = 1.0/k
 
+        def next(Ri):
+            return calc_prob(float(Ri),eps,C,k,N,scale)
+
+        R_prob = [next(1.0)]
+
+        Ri = 1.0
+
+        while R_prob[-1] != 1.0:
+            Ri += 1.0
+            R_prob.append(next(Ri))
+            
+        R_prob = np.array(R_prob[:-1])
+
         R = np.arange(1,N+1)
 
-        R_prob = np.array([calc_prob(float(Ri),eps,C,k,N,scale) for Ri in R])
+        R = R[:len(R_prob)]
 
         #print(R_prob)
 
-        plt.figure()
+        #plt.figure()
 
-        plt.semilogy(R,R_prob,'.')
+        #plt.semilogy(R,R_prob,'.')
 
         #plt.show()
 
         probs.append(calc_prob(float(20),eps,C,k,N,scale))
 
-        print(probs)
+        print(k)
 
-    plt.plot(k_range,probs)
-
+    plt.plot(k_range,probs,'.')
+    
     plt.show()
