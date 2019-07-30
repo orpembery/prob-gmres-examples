@@ -33,8 +33,8 @@ def plot_k(threshold,beta):
 
 if __name__ == '__main__':
 
-    plot_k(20,0.99)
-    plot_k(20,1.0)
-    plot_k(20,1.01)
+    plot_k(10,0.0)
+    plot_k(10,1.0)
+    plot_k(10,2.0)
 
     

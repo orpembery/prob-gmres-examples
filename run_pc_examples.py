@@ -3,11 +3,13 @@ import numpy as np
 
 k_range = [10.0,20.0,30.0,40.0,50.0,60.0]
 
-num_repeats = 100
+num_repeats = 1000
+
+scale_exponents = [0.0,1.0,2.0]
 
 for k in k_range:
 
-    for scale_exponent in [0.0,0.5,1.0]:
+    for scale_exponent in scale_exponents:
         print(k,scale_exponent)
 
         scale = 1.0/k**scale_exponent    
