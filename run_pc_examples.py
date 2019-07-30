@@ -12,7 +12,7 @@ for k in k_range:
 
         scale = 1.0/k**scale_exponent    
 
-        np.random.set_seed(12)
+        np.random.seed(12)
         
         experiment([k],scale,num_repeats)
 
