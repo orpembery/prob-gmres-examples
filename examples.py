@@ -8,7 +8,7 @@ def plot_k(threshold,beta):
 
     probs = []
 
-    k_range = np.linspace(10.0,200.0,1001)
+    k_range = np.linspace(10.0,40.0,1001)
 
     to_use = []
     
@@ -24,17 +24,14 @@ def plot_k(threshold,beta):
 
         probs.append(calc_G.calc_prob(float(threshold),eps,C,k,N,scale))
 
-        print(k)
-
-
     plt.plot(k_range,probs,'.')
     
     plt.show()
 
 if __name__ == '__main__':
 
-    plot_k(10,0.0)
-    plot_k(10,1.0)
-    plot_k(10,2.0)
+    plot_k(12,0.0)
+    plot_k(12,1.0)
+    plot_k(12,2.0)
 
     
